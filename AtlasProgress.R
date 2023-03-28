@@ -14,11 +14,14 @@ library(htmlwidgets)
 library(googledrive)
 library(googlesheets4)
 library(ggplot2)
+library(fasterize)
+library(stars)
+library(terra)
 
-table_swlux <- read_sheet("https://docs.google.com/spreadsheets/d/1hifgIF_Yw765mo0xqFZNHAfZ0U6C9fA46Bmeriz1Xe4/edit?usp=sharing", na="")
+tableL <- read_sheet("https://docs.google.com/spreadsheets/d/1Ws6ROUVHCIgfvM7GwVXAZrXQ677aTO24QbuX1PHtpYE/edit?usp=sharing", na="")
 1
 
-tab <- apply(as.matrix(table_swlux[,2:5]), 2, unlist)
+tab <- apply(as.matrix(tableL[,2:5]), 2, unlist)
 sum(as.numeric(tab$`A. cineraria`), na.rm=T)
 sum(as.numeric(tab$`B. major`), na.rm=T)
 
@@ -26,14 +29,15 @@ sum(as.numeric(tab$`B. major`), na.rm=T)
 ###### Important as fgb is not recognised by pandoc
 mapviewOptions(fgb = FALSE)
 
-sw <- raster("Data/ascii/esch_in.asc")
-lux <- raster("Data/ascii/lux_in.asc")
-crs(sw) <- CRS('+init=EPSG:2169')
+lux <- st_read("C:/Users/jwittische/Downloads/GridGaussLux5000m_Poly_GL/GridGaussLux5000m_Poly_GL.shp")
+lux <- st_rasterize(lux)
+lux <- rast(lux)
+lux <- raster(lux)
 crs(lux) <- CRS('+init=EPSG:2169')
-swlux <- raster::merge(sw, lux)
 
-swlux1km <- aggregate(swlux, fact=1000/res(swlux))
-plot(swlux1km)
+plot(lux)
+lux5km <- aggregate(lux, fact=)
+plot(lux5km)
 
 cell_number_swlux <- swlux1km
 cell_number_swlux[!is.na(cell_number_swlux)] <- 1:length(cell_number_swlux[!is.na(cell_number_swlux)])
