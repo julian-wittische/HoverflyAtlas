@@ -17,62 +17,51 @@ library(ggplot2)
 library(fasterize)
 library(stars)
 library(terra)
+library(rgeoboundaries)
 
 tableL <- read_sheet("https://docs.google.com/spreadsheets/d/1Ws6ROUVHCIgfvM7GwVXAZrXQ677aTO24QbuX1PHtpYE/edit?usp=sharing", na="")
 1
 
-tab <- apply(as.matrix(tableL[,2:5]), 2, unlist)
-sum(as.numeric(tab$`A. cineraria`), na.rm=T)
-sum(as.numeric(tab$`B. major`), na.rm=T)
-
+# tab <- apply(as.matrix(tableL[,2:5]), 2, unlist)
+# sum(as.numeric(tab$`A. cineraria`), na.rm=T)
+# sum(as.numeric(tab$`B. major`), na.rm=T)
 
 ###### Important as fgb is not recognised by pandoc
 mapviewOptions(fgb = FALSE)
 
-lux <- st_read("C:/Users/jwittische/Downloads/GridGaussLux5000m_Poly_GL/GridGaussLux5000m_Poly_GL.shp")
-lux <- st_rasterize(lux)
-lux <- rast(lux)
-lux <- raster(lux)
-crs(lux) <- CRS('+init=EPSG:2169')
+lux5km <- raster(nrows=12, ncols=17, xmn=48000, xmx=108000, ymn=55000, ymx=140000,
+                 crs=CRS('+init=EPSG:2169'), resolution=5000, vals=1:204)
 
-plot(lux)
-lux5km <- aggregate(lux, fact=)
-plot(lux5km)
+lux1km <- raster(nrows=12, ncols=17, xmn=48000, xmx=108000, ymn=55000, ymx=140000,
+              crs=CRS('+init=EPSG:2169'), resolution=1000, vals=1:5100)
 
-cell_number_swlux <- swlux1km
-cell_number_swlux[!is.na(cell_number_swlux)] <- 1:length(cell_number_swlux[!is.na(cell_number_swlux)])
-length(swlux1km[!is.na(swlux1km)])
+lux_borders <- geoboundaries("Luxembourg", adm_lvl="adm0")
+lux_borders <- st_transform(lux_borders, crs="EPSG:2169")
+lux_borders <- as(lux_borders, "Spatial")
+lux_raster <- rasterize(lux_borders, lux5km, mask=TRUE, getCover=TRUE)
 
-rtp <- rasterToPolygons(cell_number_swlux, digits=20)
+plot(lux_raster)
+lux_raster[lux_raster==0] <- NA
 
-table_swlux <- as.data.frame(table_swlux)
+plot(lux_borders)
+
+cell_number_lux <- lux_raster
+
+cell_number_lux[!is.na(cell_number_lux)] <- 1:length(cell_number_lux[!is.na(cell_number_lux)])
+
+rtp <- rasterToPolygons(cell_number_lux, digits=20)
+
+tableL<- as.data.frame(tableL)
 #table_swlux <- table_swlux[-nrow(table_swlux),]
 
-cells_done_swlux_BM <- which(as.numeric(as.character(table_swlux$`B. major`))>=1)
-effort_BM <- cell_number_swlux
-effort_BM[] <- NA
-effort_BM[which(values(cell_number_swlux)%in%cells_done_swlux_BM)] <- cells_done_swlux_BM
-rtp_effort_BM <- rasterToPolygons(effort_BM, digits=20)
+cells_done_lux <- unique(tableL$`CELL`)
+cells_done_lux <- cells_done_lux[!is.na(cells_done_lux)]
+effort <- cell_number_lux
+effort[] <- NA
+effort[which(values(cell_number_lux)%in%cells_done_lux)] <- cells_done_lux
+rtp_effort <- rasterToPolygons(effort, digits=20)
 
-cells_done_swlux_OB <- which(as.numeric(as.character(table_swlux$`O. bicornis`))>=1)
-effort_OB <- cell_number_swlux
-effort_OB[] <- NA
-effort_OB[which(values(cell_number_swlux)%in%cells_done_swlux_OB)] <- cells_done_swlux_OB
-rtp_effort_OB <- rasterToPolygons(effort_OB, digits=20)
-
-cells_done_swlux_OC <- which(as.numeric(as.character(table_swlux$`O. cornuta`))>=1)
-effort_OC <- cell_number_swlux
-effort_OC[] <- NA
-effort_OC[which(values(cell_number_swlux)%in%cells_done_swlux_OC)] <- cells_done_swlux_OC
-rtp_effort_OC <- rasterToPolygons(effort_OC, digits=20)
-
-cells_done_swlux_AC <- which(as.numeric(as.character(table_swlux$`A. cineraria`))>=1)
-effort_AC <- cell_number_swlux
-effort_AC[] <- NA
-effort_AC[which(values(cell_number_swlux)%in%cells_done_swlux_AC)] <- cells_done_swlux_AC
-rtp_effort_AC <- rasterToPolygons(effort_AC, digits=20)
-
-satorosm <- "OpenStreetMap" #"Esri.WorldImagery" #  "OpenStreetMap" #
+satorosm <-  "OpenStreetMap" #"Esri.WorldImagery" "Esri.WorldImagery" #  "OpenStreetMap" #
 
 ##### Plotting procedure
 m <- mapview(rtp,
@@ -86,7 +75,7 @@ m <- mapview(rtp,
              lwd=2,
              color="red") #get rid of color
 
-eff_BM <- mapview(rtp_effort_BM,
+eff <- mapview(rtp_effort,
                   method = "ngb", 
                   na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get rid of color
                   query.type = "click", #CLICK ON A PLACE TO KNOW WHICH CELL YOU ARE IN
@@ -98,79 +87,14 @@ eff_BM <- mapview(rtp_effort_BM,
                   lwd=2,
                   color="blue") #get rid of color
 
-eff_OB <- mapview(rtp_effort_OB,
-               method = "ngb", 
-               na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get rid of color
-               query.type = "click", #CLICK ON A PLACE TO KNOW WHICH CELL YOU ARE IN
-               trim = TRUE,
-               legend = FALSE, #no need for legend
-               map.types = satorosm,#"Esri.WorldImagery",#, # CHANGE TO "Esri.WorldImagery" IF YOU WANT
-               alpha.regions = 0.25,
-               col.regions = "black",
-               lwd=2,
-               color="black") #get rid of color
+comb <- m + eff
+comb
 
-eff_OC <- mapview(rtp_effort_OC,
-                  method = "ngb", 
-                  na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get rid of color
-                  query.type = "click", #CLICK ON A PLACE TO KNOW WHICH CELL YOU ARE IN
-                  trim = TRUE,
-                  legend = FALSE, #no need for legend
-                  map.types = satorosm,#"Esri.WorldImagery",#, # CHANGE TO "Esri.WorldImagery" IF YOU WANT
-                  alpha.regions = 0.25,
-                  col.regions = "yellow",
-                  lwd=2,
-                  color="yellow") #get rid of color
+mapshot(comb, url="lux_effort_osm.html")
 
-eff_AC <- mapview(rtp_effort_AC,
-                  method = "ngb", 
-                  na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get rid of color
-                  query.type = "click", #CLICK ON A PLACE TO KNOW WHICH CELL YOU ARE IN
-                  trim = TRUE,
-                  legend = FALSE, #no need for legend
-                  map.types = satorosm,#"Esri.WorldImagery",#, # CHANGE TO "Esri.WorldImagery" IF YOU WANT
-                  alpha.regions = 0.5,
-                  col.regions = "red",
-                  lwd=2,
-                  color="red") #get rid of color
-
-comb_BM <- m + eff_BM
-comb_BM
-
-comb_OB <- m + eff_OB
-comb_OB
-
-comb_OC <- m + eff_OC
-comb_OC
-
-comb_AC <- m + eff_AC
-comb_AC
-
-comb_all <- m + eff_BM + eff_OB + eff_OC + eff_AC
-comb_all
-
-mapshot(comb_BM, url="swluxmap2022BM_effort_osm.html")
-
-
-# B. major
-sum(unlist(as.numeric(as.character(table_swlux$`B. major`))), na.rm=TRUE)
-length(which(unlist(as.numeric(as.character(table_swlux$`B. major`)))>=1))
-length(which(unlist(as.numeric(as.character(table_swlux$`B. major`)))>=1))/457
-
-# O. bicornis
-sum(unlist(as.numeric(as.character(table_swlux$`O. bicornis`))), na.rm=TRUE)
-length(which(unlist(as.numeric(as.character(table_swlux$`O. bicornis`)))>=1))
-length(which(unlist(as.numeric(as.character(table_swlux$`O. bicornis`)))>=1))/457
-
-# O. cornuta
-sum(unlist(as.numeric(as.character(table_swlux$`O. cornuta`))), na.rm=TRUE)
-length(which(unlist(as.numeric(as.character(table_swlux$`O. cornuta`)))>=1))
-length(which(unlist(as.numeric(as.character(table_swlux$`O. cornuta`)))>=1))/457
-
-# A. cineraria
-sum(unlist(as.numeric(as.character(table_swlux$`A. cineraria`))), na.rm=TRUE)
-length(which(unlist(as.numeric(as.character(table_swlux$`A. cineraria`)))>=1))
-length(which(unlist(as.numeric(as.character(table_swlux$`A. cineraria`)))>=1))/457
+# sum(unlist(as.numeric(as.character(table_swlux$`B. major`))), na.rm=TRUE)
+# length(which(unlist(as.numeric(as.character(table_swlux$`B. major`)))>=1))
+# length(which(unlist(as.numeric(as.character(table_swlux$`B. major`)))>=1))/457
 
 # People
 species <- table_swlux[, 2:5]
@@ -194,7 +118,3 @@ AC21map <- mapview(AC21, na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get r
                       color="blue")
 
 comb_AC + AC21map
-
-
-
-                    
