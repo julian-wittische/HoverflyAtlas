@@ -20,7 +20,6 @@ library(terra)
 library(rgeoboundaries)
 
 tableL <- read_sheet("https://docs.google.com/spreadsheets/d/1Ws6ROUVHCIgfvM7GwVXAZrXQ677aTO24QbuX1PHtpYE/edit?usp=sharing", na="")
-1
 
 # tab <- apply(as.matrix(tableL[,2:5]), 2, unlist)
 # sum(as.numeric(tab$`A. cineraria`), na.rm=T)
@@ -118,3 +117,24 @@ AC21map <- mapview(AC21, na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get r
                       color="blue")
 
 comb_AC + AC21map
+
+################################################################################
+tableL <- as.data.frame(tableL)
+colnames(tableL)[2] <- "LATITUDE"
+coor <- tableL[, c("LONGITUDE","LATITUDE")]
+coor$LONGITUDE <- as.numeric(coor$LONGITUDE)
+coor$LATITUDE <- as.numeric(coor$LATITUDE)
+
+visits <- st_as_sf(coor, coords = c("LONGITUDE","LATITUDE"), crs = 4326)
+
+visitsmap <- mapview(visits, na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get rid of color
+                   query.type = "click", #CLICK ON A PLACE TO KNOW WHICH CELL YOU ARE IN
+                   trim = TRUE,
+                   legend = FALSE, #no need for legend
+                   map.types = satorosm,#"Esri.WorldImagery",#, # CHANGE TO "Esri.WorldImagery" IF YOU WANT
+                   alpha.regions = 0.5,
+                   col.regions = "blue",
+                   lwd=2,
+                   color="red")
+
+mapshot2(visitsmap, url="visits2023map4CG.html")
