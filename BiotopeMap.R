@@ -21,11 +21,22 @@ library(raster)
 
 # Attempt to read it directly
 
+# Remarkable trees
+library(readxl)
+trees <- read_excel("S:/BDPatNat/_Julian/Zoology/hoverfly atlas/Arbres-rem-ANF-181008.xlsx")
+trees <- st_as_sf(trees, coords=c("Longitude", "Latitude"), crs="EPSG:2169")
+
 # There is problem accessing server directories; dirty FIX: go on open file and click on server until it becomes green
 biot <- st_read(dsn="S:/BDPatNat/_Julian/Zoology/hoverfly atlas/Biotope/wbk-2020-vf-data-public/", layer="WBK_2020_polygones")
-biot <- biot[biot$E_Btyp1_co=="91E0"|biot$E_Btyp1_co=="91D0",]
+
+# Quercus biotopes BK13, BK14, BK15, BK16, BK17, BK23, 9160
+querc <- biot[biot$E_Btyp1_co %in% c("BK13", "BK14", "BK15", "BK16", "BK17", "BK23", "9160"),]
+# Wetland biotopes BK05, BK06, BK08, BK10, BK11, 7140, 6430, 3260, 3150, 3130, 91D0, 91E0
+wetland <- biot[biot$E_Btyp1_co  %in% c("BK05", "BK06", "BK08", "BK10", "BK11", "7140", "6430", "3260", "3150", "3130", "91D0", "91E0"),]
+
 # Keep only interesting biotopes
-plot(biot["E_Btyp1_co"])
+plot(querc["E_Btyp1_co"])
+plot(wetland["E_Btyp1_co"])
 
 ###### Important as fgb is not recognised by pandoc
 mapviewOptions(fgb = FALSE)
@@ -76,20 +87,46 @@ m <- mapview(rtp,
              map.types = satorosm ,#"Esri.WorldImagery",#, # CHANGE TO "Esri.WorldImagery" IF YOU WANT
              alpha.regions = 0,
              lwd=2,
-             color="blue") #get rid of color
+             color="white") #get rid of color
+
+treesm <- mapview(trees, col.regions = "red", color="red")
 
 
-biotm <- mapview(biot,
-                    method = "ngb", 
-                    na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get rid of color
-                    query.type = "click", #CLICK ON A PLACE TO KNOW WHICH CELL YOU ARE IN
-                    trim = TRUE,
-                    legend = FALSE, #no need for legend
-                    map.types = satorosm ,#"Esri.WorldImagery",#, # CHANGE TO "Esri.WorldImagery" IF YOU WANT
-                    alpha.regions = 0.45,
-                    lwd=5,
-                    col.regions = "red",
-                    color="red") #get rid of color
+# biotm <- mapview(biot,
+#                     method = "ngb",
+#                     na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get rid of color
+#                     query.type = "click", #CLICK ON A PLACE TO KNOW WHICH CELL YOU ARE IN
+#                     trim = TRUE,
+#                     legend = FALSE, #no need for legend
+#                     map.types = satorosm ,#"Esri.WorldImagery",#, # CHANGE TO "Esri.WorldImagery" IF YOU WANT
+#                     alpha.regions = 0.45,
+#                     lwd=5,
+#                     col.regions = "red",
+#                     color="red") #get rid of color
 
-mapshot2(m  + biotm, url="91E0&91D0_sat.html")
+quercm <- mapview(querc,
+                 method = "ngb",
+                 na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get rid of color
+                 query.type = "click", #CLICK ON A PLACE TO KNOW WHICH CELL YOU ARE IN
+                 trim = TRUE,
+                 legend = FALSE, #no need for legend
+                 map.types = satorosm ,#"Esri.WorldImagery",#, # CHANGE TO "Esri.WorldImagery" IF YOU WANT
+                 alpha.regions = 0.45,
+                 lwd=5,
+                 col.regions = "yellow",
+                 color="yellow") #get rid of color
+
+wetlandm <- mapview(wetland,
+                  method = "ngb",
+                  na.color = rgb(0, 0, 255, max = 255, alpha = 0), #get rid of color
+                  query.type = "click", #CLICK ON A PLACE TO KNOW WHICH CELL YOU ARE IN
+                  trim = TRUE,
+                  legend = FALSE, #no need for legend
+                  map.types = satorosm ,#"Esri.WorldImagery",#, # CHANGE TO "Esri.WorldImagery" IF YOU WANT
+                  alpha.regions = 0.45,
+                  lwd=5,
+                  col.regions = "blue",
+                  color="blue") #get rid of color
+
+mapshot2(m + quercm + wetlandm + treesm, url="quercus&wetland_osm.html")
 
