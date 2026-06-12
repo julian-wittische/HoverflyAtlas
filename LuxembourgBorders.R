@@ -12,7 +12,7 @@ library(tidyverse)
 ###### Spatial object ----
 bbox <- st_bbox(c(xmin = 5.7, xmax = 6.55, ymax = 50.2, ymin = 49.4), crs = st_crs(4326))
 GRborders <- st_read("/home/jwittische/Code/CitizenScienceLUX/GRborders.gpkg")
-# HINA CHANGE LE PATH STP
+# HINA CHANGE LE PATH STP "W:/02_Shared/HinateaAriey/HoverflyAtlasDATA/GRborders.gpkg"
 
 GR2169_c <- GRborders %>%
   st_crop(bbox) %>%
