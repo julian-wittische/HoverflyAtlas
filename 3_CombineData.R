@@ -34,7 +34,7 @@ BC7$Source <- "Insk"
 
 MD <- read.csv("W:/02_Shared/HinateaAriey/HoverflyAtlasDATA/Mdata.csv", header=TRUE, encoding="latin1")
 colnames(MD)[17] <- "Source"
-MD$Year <- format(as.Date(MD$Sample_Date, format="%d/%m/%Y"),"%Y")
+MD$Year <- format(as.Date(MD$date_start, format="%d/%m/%Y"),"%Y")
 
 # combine them
 BC <- rbind(BC1, BC2)
@@ -63,7 +63,19 @@ MD <- MD[,c(11,12,5,17,28)]
 colnames(MD)[3] <- "ID"
 
 DB <- rbind(DB,MD)
+DB[!(DB$Source %in% c("Inaturalist","Observation.org","HN","LBB","Insk")),"Source"] <- "MNHNL"
+DB<- DB[c(-517),] # problematic WBA's sample
 
+
+
+
+DB$Long <- as.numeric(DB$Long)
+DB$Lat <- as.numeric(DB$Lat)
+DB$Year <- as.numeric(DB$Year)
+
+DB <- DB[complete.cases(DB$Long),]
+DB <- DB[complete.cases(DB$Lat),]
+DB <- DB[complete.cases(DB$Year),]
 ###### Draft - Basket
 
 #hn <- read_xlsx(path, sheet="premiere gooood sheet")
