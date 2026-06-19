@@ -26,11 +26,11 @@ HN4 <- read_xlsx(paste0(DATAPATH, "ID_Hand netting atlas_20260611.xlsx"),sheet=4
 HN5 <- read_xlsx(paste0(DATAPATH, "ID_Hand netting atlas_20260611.xlsx"),sheet=5)
 
 # add origine of the data = Source
-BC1$Source <-"WBA"
-BC2$Source <- "LMsTh"
-BC3$Source <- "LBB"
-BC6$Source <- "Insk"
-BC7$Source <- "Insk"
+BC1$Source <- "Pan traps"
+BC2$Source <- "Pan traps"
+BC3$Source <- "Malaise traps"
+BC6$Source <- "Malaise traps"
+BC7$Source <- "Malaise traps"
 
 MD <- read.csv("W:/02_Shared/HinateaAriey/HoverflyAtlasDATA/Mdata.csv", header=TRUE, encoding="latin1")
 colnames(MD)[17] <- "Source"
@@ -46,7 +46,7 @@ HN <- rbind(HN1, HN2)
 HN <- rbind(HN, HN4)
 HN <- rbind(HN, HN5)
 # add origine of the data = Source
-HN$Source <-"HN"
+HN$Source <-"Hand netting"
 
 DB <- rbind(BC, HN)
 
@@ -61,9 +61,10 @@ colnames(DB)[5] <- "Year"
 
 MD <- MD[,c(11,12,5,17,28)]
 colnames(MD)[3] <- "ID"
+MD$Source <-"Citizen science"
 
 DB <- rbind(DB,MD)
-DB[!(DB$Source %in% c("Inaturalist","Observation.org","HN","LBB","Insk")),"Source"] <- "MNHNL"
+DB[!(DB$Source %in% c("Citizen science","Hand netting","Malaise traps")),"Source"] <- "MNHNL"
 DB<- DB[c(-517),] # problematic WBA's sample
 
 
