@@ -21,14 +21,15 @@ ggplot() +
         panel.grid = element_blank(),
         panel.background = element_blank(),
         axis.title=element_blank()) +
-  geom_sf(data=DB_sf[DB_sf$Source %in% c("Citizen science"),],aes(color=Source), size=2)+
-  geom_sf(data=DB_sf[!(DB_sf$Source %in% c("Citizen science")),], aes(color=Source), size=2.75)+
+  geom_sf(data=DB_sf[DB_sf$Source %in% c("Citizen science","MNHNL"),],aes(color=Source), size=2)+
+  geom_sf(data=DB_sf[!(DB_sf$Source %in% c("Citizen science","MNHNL")),], aes(color=Source), size=2.75)+
   scale_color_manual(
     values = c(
       "Citizen science" = "grey",
-      "Hand netting" = "purple",
+      "MNHNL" = "brown",
+      "Hand netting" = "lightblue",
       "Malaise traps" = "orange",
-      "MNHNL" = "black"
+      "Pan traps" = "green"
       
     ) 
   )
