@@ -15,3 +15,4 @@ library(sf)
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(ggspatial) #for North arrow
