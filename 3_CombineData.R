@@ -32,7 +32,7 @@ BC3$Source <- "Malaise traps"
 BC6$Source <- "Malaise traps"
 BC7$Source <- "Pan traps"
 
-MD <- read.csv("W:/02_Shared/HinateaAriey/HoverflyAtlasDATA/Mdata.csv", header=TRUE, encoding="latin1")
+MD <- read.csv(paste0(DATAPATH,"Mdata.csv"), header=TRUE, encoding="latin1")
 colnames(MD)[17] <- "Source"
 MD$Year <- format(as.Date(MD$date_start, format="%d/%m/%Y"),"%Y")
 
