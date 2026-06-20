@@ -79,6 +79,9 @@ DB$Year <- as.numeric(DB$Year)
 DB <- DB[complete.cases(DB$Long),]
 DB <- DB[complete.cases(DB$Lat),]
 DB <- DB[complete.cases(DB$Year),]
+
+
+
 ###### Draft - Basket
 
 #hn <- read_xlsx(path, sheet="premiere gooood sheet")
